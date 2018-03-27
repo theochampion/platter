@@ -11,11 +11,8 @@ const addDevice = (ws, req) => {
     const id = uuidv4(); // assign a unique id to each client
     console.log("Device: " + id)
 
-    const device = {
-        ws: ws,
-        ip: req.connection.remoteAddress,
-        name: req.headers.name
-    }
+    ws.ip = req.connection.remoteAddress
+    ws.name = req.headers.name
     devices.set(id, ws)
 
     ws.on('close', ws => {
@@ -23,7 +20,11 @@ const addDevice = (ws, req) => {
         devices.delete(id)
     });
     for (let [id, ws] of webs) {
-        console.log("Sending " + JSON.stringify({
+        console.log("new", JSON.stringify({
+            ip: ws.ip,
+            name: ws.name
+        }))
+        ws.send(JSON.stringify({
             ip: req.connection.remoteAddress,
             name: req.headers.name
         }))
@@ -41,6 +42,16 @@ const addWeb = (ws, req) => {
         console.log("Removing web " + id);
         webs.delete(id)
     });
+    for (let [id, dws] of devices) {
+        console.log("jkfde", JSON.stringify({
+            ip: dws.ip,
+            name: dws.name
+        }))
+        ws.send(JSON.stringify({
+            ip: dws.ip,
+            name: dws.name
+        }))
+    }
 }
 
 wss.on('connection', function connection(ws, req) {

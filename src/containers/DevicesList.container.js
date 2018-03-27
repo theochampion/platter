@@ -2,25 +2,39 @@ import React, { Component } from 'react';
 import { Card } from 'semantic-ui-react'
 
 import DeviceCard from '../components/DeviceCard'
-const WebSocket = require('ws');
 
 
 class DevicesList extends Component {
+    constructor(props) {
+        super(props)
+        this.state = {
+            devices: []
+        }
+    }
     componentDidMount() {
-        this.wss = new WebSocket.Server({ port: 8080 });
 
-        this.wss.on('connection', function connection(ws) {
-            ws.on('message', function incoming(message) {
-                console.log('received: %s', message);
-            });
+        this.ws = new WebSocket('ws://localhost:8080/websocket');
 
-            ws.send('something');
-        });
+        this.ws.onopen = () => {
+            console.log("con open")
+        };
+
+        this.ws.onmessage = msg => {
+            console.log("msg", msg.data)
+
+            const device = JSON.parse(msg.data)
+            console.log("device", device)
+            this.setState({ devices: this.state.devices.concat([device]) })
+        }
     }
     render() {
         return (
             <Card.Group>
-                <DeviceCard name="Sunday" ip="192.168.1.34" desc="home device storing most on my illegal sutff" />
+                {
+                    this.state.devices.map((device, idx) =>
+                        <DeviceCard key={idx} name={device.name} ip={device.ip} desc="home device storing most on my illegal sutff" />
+                    )
+                }
             </Card.Group>
 
         );
