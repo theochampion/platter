@@ -1,5 +1,5 @@
 import React from 'react'
-import { Container, Divider, Dropdown, Grid, Image, List, Menu, Segment } from 'semantic-ui-react'
+import { Menu, Image } from 'semantic-ui-react'
 
 
 const Header = () => (
