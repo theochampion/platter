@@ -15,7 +15,7 @@ const Header = ({ serverOnline }) => (
                 Platter
         </Menu.Item>
             <Menu.Item position="right">
-                {serverOnline || <Loader active inline size='mini' />}
+                {!serverOnline && <Loader active inline size='mini' />}
                 <Label color={serverOnline ? 'green' : 'red'} >
                     {serverOnline ? "online" : "offline"}
                 </Label>
