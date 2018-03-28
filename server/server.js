@@ -16,20 +16,22 @@ const addDevice = (ws, req) => {
     devices.set(id, ws)
 
     ws.on('close', ws => {
-        console.log("Removing device " + id);
         devices.delete(id)
+        for (let [id, wws] of webs) {
+            wws.send(JSON.stringify({
+                status: 'offline',
+                ip: ws.ip,
+                name: ws.name
+            }))
+        }
     });
     for (let [id, ws] of webs) {
-        console.log("new", JSON.stringify({
-            ip: ws.ip,
-            name: ws.name
-        }))
         ws.send(JSON.stringify({
+            status: 'online',
             ip: req.connection.remoteAddress,
             name: req.headers.name
         }))
     }
-    //signal webs
 }
 
 const addWeb = (ws, req) => {
@@ -43,11 +45,8 @@ const addWeb = (ws, req) => {
         webs.delete(id)
     });
     for (let [id, dws] of devices) {
-        console.log("jkfde", JSON.stringify({
-            ip: dws.ip,
-            name: dws.name
-        }))
         ws.send(JSON.stringify({
+            status: 'online',
             ip: dws.ip,
             name: dws.name
         }))

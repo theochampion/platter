@@ -2,8 +2,8 @@ import React from 'react'
 import { Button, Card } from 'semantic-ui-react'
 
 const DeviceCard = ({ name, ip, desc }) => (
-    <Card>
-        <Card.Content>
+    <Card >
+        <Card.Content textAlign="left">
             <Card.Header>
                 {name}        </Card.Header>
             <Card.Meta>
