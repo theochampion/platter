@@ -1,5 +1,5 @@
 import React from 'react'
-import { Menu, Image, Label, Container } from 'semantic-ui-react'
+import { Menu, Image, Label, Container, Loader } from 'semantic-ui-react'
 
 
 const Header = ({ serverOnline }) => (
@@ -15,10 +15,13 @@ const Header = ({ serverOnline }) => (
                 Platter
         </Menu.Item>
             <Menu.Item position="right">
+                {serverOnline || <Loader active inline size='mini' />}
                 <Label color={serverOnline ? 'green' : 'red'} >
                     {serverOnline ? "online" : "offline"}
                 </Label>
+
             </Menu.Item>
+
         </Container>
 
     </Menu>

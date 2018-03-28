@@ -11,17 +11,17 @@ class DevicesList extends Component {
             devices: new Map()
         }
     }
-    componentDidMount() {
+    connectToWSServer() {
         this.ws = new WebSocket('ws://localhost:8080/websocket');
 
         this.ws.onopen = () => {
             this.props.onConnectionChange(true)
         };
         this.ws.onclose = () => {
+            console.log("close")
+
             this.props.onConnectionChange(false)
-        };
-        this.ws.onerror = () => {
-            this.props.onConnectionChange(false)
+            setTimeout(() => { console.log("trying to connect"); this.connectToWSServer() }, 2000)
         };
 
         this.ws.onmessage = msg => {
@@ -37,6 +37,10 @@ class DevicesList extends Component {
                 return { devices: prevState.devices }
             })
         }
+    }
+
+    componentDidMount() {
+        this.connectToWSServer()
     }
 
     render() {
