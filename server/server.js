@@ -7,34 +7,35 @@ let devices = new Map()
 let webs = new Map()
 
 
-const addDevice = (ws, req) => {
-    const id = uuidv4(); // assign a unique id to each client
-    console.log("Device: " + id)
-
-    ws.ip = req.connection.remoteAddress
-    ws.name = req.headers.name
-    devices.set(id, ws)
-
-    ws.on('close', ws => {
-        devices.delete(id)
-        for (let [id, wws] of webs) {
-            wws.send(JSON.stringify({
-                status: 'offline',
-                ip: ws.ip,
-                name: ws.name
-            }))
-        }
-    });
-    for (let [id, ws] of webs) {
-        ws.send(JSON.stringify({
-            status: 'online',
-            ip: req.connection.remoteAddress,
-            name: req.headers.name
-        }))
-    }
+const broadcast = (socketMap, payload) => {
+    console.log("Broadcasting", payload)
+    for (let [id, ws] of socketMap) {
+        ws.send(JSON.stringify(payload))
+    };
 }
 
-const addWeb = (ws, req) => {
+const addDevice = (ws, req) => {
+
+    let device = {
+        status: 'online',
+        ip: req.connection.remoteAddress,
+        name: req.headers.name,
+        id: uuidv4()
+    }
+    console.log("Device: " + device.id)
+
+    devices.set(device.id, device)
+
+    ws.on('close', ws => {
+        console.log("delete device")
+        devices.delete(device.id)
+        device.status = 'offline'
+        broadcast(webs, device)
+    });
+    broadcast(webs, device)
+}
+
+const addWebClient = (ws, req) => {
     const id = uuidv4(); // assign a unique id to each client
     console.log("Web: " + id)
 
@@ -44,23 +45,23 @@ const addWeb = (ws, req) => {
         console.log("Removing web " + id);
         webs.delete(id)
     });
-    for (let [id, dws] of devices) {
+    for (let [id, device] of devices) {
         ws.send(JSON.stringify({
-            status: 'online',
-            ip: dws.ip,
-            name: dws.name
+            status: device.status,
+            id: device.id,
+            ip: device.ip,
+            name: device.name
         }))
     }
 }
 
 wss.on('connection', function connection(ws, req) {
-
-    req.headers.type === 'device' ? addDevice(ws, req) : addWeb(ws, req)
+    req.headers.type === 'device' ? addDevice(ws, req) : addWebClient(ws, req)
 });
 
 
 
-console.log("Server started on port 8080")
+console.log("Server started on port 8080...")
 
 
 /*
