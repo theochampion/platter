@@ -5,11 +5,17 @@ import Header from './components/Header'
 
 
 class App extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      serverOnline: false
+    }
+  }
   render() {
     return (
       <div className="App">
-        <Header />
-        <DevicesList />
+        <Header serverOnline={this.state.serverOnline} />
+        <DevicesList onConnectionChange={status => { console.log("dejbdf", status); this.setState({ serverOnline: status }) }} />
 
       </div>
     );
