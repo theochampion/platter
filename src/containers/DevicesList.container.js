@@ -10,7 +10,24 @@ class DevicesList extends Component {
         this.state = {
             devices: new Map()
         }
+
+
+        this.handleExecute = this.handleExecute.bind(this)
+        this.handleScriptChange = this.handleScriptChange.bind(this)
+
     }
+
+    updateDevices(id, device, deleteDevice = false) {
+        this.setState(prevState => {
+
+            deleteDevice ? prevState.devices.delete(device.id) : prevState.devices.set(device.id, device)
+            console.log("device", ...prevState.devices)
+            console.log("id", id)
+
+            return { devices: prevState.devices }
+        })
+    }
+
     connectToWSServer() {
         this.ws = new WebSocket('ws://localhost:8080/websocket');
 
@@ -28,14 +45,20 @@ class DevicesList extends Component {
             console.log("msg", msg.data)
 
             const device = JSON.parse(msg.data)
-            this.setState(prevState => {
+            this.updateDevices(device.id, device, device.status === "offline")
+        }
+    }
 
-                device.status === 'online' ? prevState.devices.set(device.id, device) : prevState.devices.delete(device.id)
-                console.log("device", ...prevState.devices)
-                console.log("ip", device.id)
+    handleScriptChange(id, script) {
+        console.log({ ...this.state.devices.get(id), script: script })
+        this.updateDevices(id, { ...this.state.devices.get(id), script: script })
+    }
 
-                return { devices: prevState.devices }
-            })
+    handleExecute(id) {
+        const device = this.state.devices.get(id)
+        if (device.script) {
+            console.log("executing script " + device.script + " on " + device.id)
+            this.ws.send(JSON.stringify({ id: id, script: device.script }))
         }
     }
 
@@ -47,7 +70,15 @@ class DevicesList extends Component {
         return (
             <Container >
                 <Card.Group>
-                    {[...this.state.devices].map((device, idx) => <DeviceCard key={idx} name={device[1].name} ip={device[1].ip} desc="home device storing most on my illegal sutff" />)}
+                    {[...this.state.devices].map(device => <DeviceCard
+                        key={device[1].id}
+                        id={device[1].id}
+                        name={device[1].name}
+                        ip={device[1].ip}
+                        desc={device[1].desc}
+                        script={device[1].script}
+                        onScriptChange={this.handleScriptChange}
+                        onExecute={this.handleExecute} />)}
                 </Card.Group>
             </Container >
         );

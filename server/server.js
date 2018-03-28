@@ -4,6 +4,7 @@ const uuidv4 = require('uuid/v4');
 const wss = new WebSocket.Server({ port: 8080 });
 
 let devices = new Map()
+let devicesWS = new Map()
 let webs = new Map()
 
 
@@ -20,11 +21,15 @@ const addDevice = (ws, req) => {
         status: 'online',
         ip: req.connection.remoteAddress,
         name: req.headers.name,
+        desc: req.headers.desc,
         id: uuidv4()
     }
+
     console.log("Device: " + device.id)
 
     devices.set(device.id, device)
+    devicesWS.set(device.id, ws)
+
 
     ws.on('close', ws => {
         console.log("delete device")
@@ -45,11 +50,21 @@ const addWebClient = (ws, req) => {
         console.log("Removing web " + id);
         webs.delete(id)
     });
+
+    ws.on('message', msg => {
+        const scriptOrder = JSON.parse(msg)
+        console.log(scriptOrder)
+
+        const deviceWS = devicesWS.get(scriptOrder.id)
+        deviceWS.send(scriptOrder.script)
+
+    })
     for (let [id, device] of devices) {
         ws.send(JSON.stringify({
             status: device.status,
             id: device.id,
             ip: device.ip,
+            desc: device.desc,
             name: device.name
         }))
     }
