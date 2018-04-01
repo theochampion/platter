@@ -7,16 +7,15 @@ let devices = new Map();
 let devicesWS = new Map();
 let webs = new Map();
 
-const broadcast = (socketMap, payload) => {
-  console.log("Broadcasting", payload);
+const broadcast = (socketMap, event, data) => {
+  console.log("Broadcasting", data);
   for (let [id, ws] of socketMap) {
-    ws.send(JSON.stringify(payload));
+    ws.send(JSON.stringify({ event: event, data: data }));
   }
 };
 
 const addDevice = (ws, req) => {
   let device = {
-    status: "online",
     ip: req.connection.remoteAddress,
     name: req.headers.name,
     desc: req.headers.desc,
@@ -32,8 +31,7 @@ const addDevice = (ws, req) => {
   ws.on("message", msg => {
     const scriptRes = JSON.parse(msg);
     console.log(scriptRes);
-    broadcast(webs, {
-      status: "script_update",
+    broadcast(webs, "script_update", {
       id: device.id,
       scriptNb: scriptRes.scriptNb,
       returnCode: scriptRes.returnCode
@@ -43,10 +41,9 @@ const addDevice = (ws, req) => {
   ws.on("close", ws => {
     console.log("delete device");
     devices.delete(device.id);
-    device.status = "offline";
-    broadcast(webs, device);
+    broadcast(webs, "delete_device", device);
   });
-  broadcast(webs, device);
+  broadcast(webs, "add_device", device);
 };
 
 const addWebClient = (ws, req) => {
@@ -62,21 +59,23 @@ const addWebClient = (ws, req) => {
 
   ws.on("message", msg => {
     const scriptOrder = JSON.parse(msg);
-    console.log(scriptOrder);
+    console.log(scriptOrder, typeof scriptOrder.data, scriptOrder.data.id);
 
-    const deviceWS = devicesWS.get(scriptOrder.id);
-    deviceWS.send(scriptOrder.scriptNb);
+    const deviceWS = devicesWS.get(scriptOrder.data.id);
+    deviceWS.send(scriptOrder.data.scriptNb);
   });
 
   for (let [id, device] of devices) {
     ws.send(
       JSON.stringify({
-        status: device.status,
-        id: device.id,
-        ip: device.ip,
-        desc: device.desc,
-        scripts: device.scripts,
-        name: device.name
+        event: "add_device",
+        data: {
+          id: device.id,
+          ip: device.ip,
+          desc: device.desc,
+          scripts: device.scripts,
+          name: device.name
+        }
       })
     );
   }
