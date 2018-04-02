@@ -8,9 +8,9 @@ export default class WSEventDispatcher {
       this.dispatch(json.event, json.data);
     };
 
-    this.ws.onopen = this.dispatch("open", null);
-    this.ws.onerror = this.dispatch("error", null);
-    this.ws.onclose = this.dispatch("close", null);
+    this.ws.onopen = () => this.dispatch("open", null);
+    this.ws.onerror = () => this.dispatch("error", null);
+    this.ws.onclose = () => this.dispatch("close", null);
   }
 
   bind(eventName, eventHandler) {
