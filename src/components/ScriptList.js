@@ -17,18 +17,18 @@ export default class ScriptList extends React.Component {
             key={idx}
             onClick={(evt, data) =>
               this.setState({
-                selectedScript: this.state.selectedScript == idx ? null : idx
+                selectedScript: this.state.selectedScript === idx ? null : idx
               })
             }
           >
             <List.Content floated="left">
-              <List.Header textAlign="left" content={script.name} />
-              {this.state.selectedScript == idx && (
+              <List.Header content={script.name} />
+              {this.state.selectedScript === idx && (
                 <List.Description content={script.desc} />
               )}
             </List.Content>
             <List.Content floated="right">
-              {this.state.selectedScript == idx && (
+              {this.state.selectedScript === idx && (
                 <Button
                   color="teal"
                   loading={script.running}
@@ -42,7 +42,7 @@ export default class ScriptList extends React.Component {
                   Execute
                 </Button>
               )}
-              {this.state.selectedScript != idx &&
+              {this.state.selectedScript !== idx &&
                 script.running && <Loader active inline size="mini" />}
             </List.Content>
           </List.Item>

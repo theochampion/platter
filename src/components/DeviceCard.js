@@ -1,6 +1,6 @@
 import React from "react";
 import ScriptList from "./ScriptList";
-import { Button, Card, List, Loader } from "semantic-ui-react";
+import { Card } from "semantic-ui-react";
 
 const DeviceCard = ({ id, scripts, name, ip, desc, onExecute }) => (
   <Card>
