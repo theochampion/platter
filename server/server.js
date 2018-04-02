@@ -9,9 +9,9 @@ let webs = new Map();
 
 const broadcast = (socketMap, event, data) => {
   console.log("Broadcasting", data);
-  for (let [id, ws] of socketMap) {
-    ws.send(JSON.stringify({ event: event, data: data }));
-  }
+  socketMap.forEach((ws, id) =>
+    ws.send(JSON.stringify({ event: event, data: data }))
+  );
 };
 
 const addDevice = (ws, req) => {
@@ -28,13 +28,12 @@ const addDevice = (ws, req) => {
   devices.set(device.id, device);
   devicesWS.set(device.id, ws);
 
-  ws.on("message", msg => {
-    const scriptRes = JSON.parse(msg);
-    console.log(scriptRes);
-    broadcast(webs, "script_update", {
+  ws.on("message", event => {
+    const json = JSON.parse(event);
+    console.log(json);
+    broadcast(webs, json.event, {
       id: device.id,
-      scriptNb: scriptRes.scriptNb,
-      returnCode: scriptRes.returnCode
+      ...json.data
     });
   });
 
