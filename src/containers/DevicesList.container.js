@@ -1,46 +1,22 @@
 import React, { Component } from "react";
-import { Card, Container } from "semantic-ui-react";
+import { Card, Container, Grid } from "semantic-ui-react";
 
 import WSEventDispatcher from "../utils/WSEventDispatcher";
 
 import DeviceCard from "../components/DeviceCard";
 import DeviceListMenu from "../components/DeviceListMenu";
+import EventLog from "../components/EventLog";
 
 class DevicesList extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      devices: new Map()
+      devices: new Map(),
+      events: []
     };
 
     this.handleExecute = this.handleExecute.bind(this);
   }
-
-  //   updateDevices(device) {
-  //     this.setState(prevState => {
-  //       switch (device.status) {
-  //         case "online":
-  //           prevState.devices.set(device.id, device);
-  //           break;
-  //         case "offline":
-  //           prevState.devices.delete(device.id);
-  //           break;
-  //         case "script_update":
-  //           prevState.devices.get(device.id).scripts[
-  //             device.scriptNb
-  //           ].running = false;
-  //           break;
-  //       }
-  //       console.log("device", ...prevState.devices);
-  //       console.log("id", device.id);
-  //       console.log(
-  //         "nb",
-  //         prevState.devices.get(device.id).scripts[device.scriptNb]
-  //       );
-
-  //       return { devices: prevState.devices };
-  //     });
-  //   }
 
   connectToWSServer() {
     console.log("connecting to ws");
@@ -75,10 +51,21 @@ class DevicesList extends Component {
 
     this.ws.bind("script_update", eventData => {
       this.setState(ps => {
-        ps.devices.get(eventData.id).scripts[
-          eventData.scriptNb
-        ].running = false;
-        return { devices: ps.devices };
+        const device = ps.devices.get(eventData.id);
+        const script = device.scripts[eventData.scriptNb];
+        script.running = false;
+
+        return {
+          devices: ps.devices,
+          events: [
+            ...ps.events,
+            {
+              deviceName: device.name,
+              scriptName: script.name,
+              returnCode: eventData.returnCode
+            }
+          ]
+        };
       });
     });
   }
@@ -99,20 +86,27 @@ class DevicesList extends Component {
   render() {
     return (
       <Container>
-        <DeviceListMenu />
-        <Card.Group>
-          {[...this.state.devices].map(device => (
-            <DeviceCard
-              key={device[1].id}
-              id={device[1].id}
-              name={device[1].name}
-              ip={device[1].ip}
-              desc={device[1].desc}
-              scripts={device[1].scripts}
-              onExecute={this.handleExecute}
-            />
-          ))}
-        </Card.Group>
+        <DeviceListMenu onlineDevices={this.state.devices.size} />
+        <Grid column="2">
+          <Grid.Column width={4}>
+            <EventLog events={this.state.events} />
+          </Grid.Column>
+          <Grid.Column width={12}>
+            <Card.Group>
+              {[...this.state.devices].map(device => (
+                <DeviceCard
+                  key={device[1].id}
+                  id={device[1].id}
+                  name={device[1].name}
+                  ip={device[1].ip}
+                  desc={device[1].desc}
+                  scripts={device[1].scripts}
+                  onExecute={this.handleExecute}
+                />
+              ))}
+            </Card.Group>
+          </Grid.Column>
+        </Grid>
       </Container>
     );
   }

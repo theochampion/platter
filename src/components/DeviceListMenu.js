@@ -1,12 +1,12 @@
 import React from "react";
 import { Menu, Input, Label } from "semantic-ui-react";
 
-const DeviceListMenu = ({ id, scripts, name, ip, desc, onExecute }) => (
+const DeviceListMenu = ({ onlineDevices }) => (
   <Menu>
     <Menu.Item>
       Devices online
       <Label size="mini" color="teal">
-        1
+        {onlineDevices}
       </Label>
     </Menu.Item>
 
